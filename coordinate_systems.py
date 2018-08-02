@@ -57,11 +57,11 @@ glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
 glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
 # position attribute
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * 4, None)
+glVertexAttribPointer(0, 3, GL_FLOAT, False, 5 * 4, None)
 glEnableVertexAttribArray(0)
 
 # texture coord attribute
-glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(12))
+glVertexAttribPointer(1, 2, GL_FLOAT, False, 5 * 4, ctypes.c_void_p(3 * 4))
 glEnableVertexAttribArray(1)
 
 # texture 1
@@ -103,6 +103,28 @@ ourShader.use()
 ourShader.setInt("texture1", 0)
 ourShader.setInt("texture2", 1)
 
+
+def apply_matrix():
+    model = glm.rotate(glm.mat4(1.0), glm.radians(-55.0), glm.vec3(1.0, 0.0, 0.0))
+    view = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, -3.0))
+    projection = glm.perspective(glm.radians(45.0), SCR_WIDTH / SCR_HEIGHT, 0.1, 100.0)
+    # retrieve the matrix uniform locations
+    modelLoc = glGetUniformLocation(ourShader.program, "model")
+    viewLoc = glGetUniformLocation(ourShader.program, "view")
+    projectionLoc = glGetUniformLocation(ourShader.program, "projection")
+    # pass them to the shaders (3 different ways)
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm.value_ptr(model))
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm.value_ptr(view))
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm.value_ptr(projection))
+
+
+def activateTexture():
+    glActiveTexture(GL_TEXTURE0)
+    glBindTexture(GL_TEXTURE_2D, texture1)
+    glActiveTexture(GL_TEXTURE1)
+    glBindTexture(GL_TEXTURE_2D, texture2)
+
+
 while not glfw.window_should_close(window):
     process_input(window)
 
@@ -110,32 +132,18 @@ while not glfw.window_should_close(window):
     glClearColor(0.2, 0.3, 0.3, 1.0)
     glClear(GL_COLOR_BUFFER_BIT)
 
-    # bind textures on corresponding texture units
-    glActiveTexture(GL_TEXTURE0)
-    glBindTexture(GL_TEXTURE_2D, texture1)
-    glActiveTexture(GL_TEXTURE1)
-    glBindTexture(GL_TEXTURE_2D, texture2)
-
     # activate shader
     ourShader.use()
 
-    model = glm.rotate(glm.mat4(1.0), glm.radians(-55.0), glm.vec3(1.0, 0.0, 0.0))
-    view = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, -3.0))
-    projection = glm.perspective(glm.radians(45.0), SCR_WIDTH / SCR_HEIGHT, 0.1, 100.0)
+    # bind textures on corresponding texture units
+    activateTexture()
 
-    # retrieve the matrix uniform locations
-    modelLoc = glGetUniformLocation(ourShader.program, "model")
-    viewLoc = glGetUniformLocation(ourShader.program, "view")
-    projectionLoc = glGetUniformLocation(ourShader.program, "projection")
 
-    # pass them to the shaders (3 different ways)
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm.value_ptr(model))
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm.value_ptr(view))
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm.value_ptr(projection))
+    apply_matrix()
 
     # render container
     glBindVertexArray(VAO)
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0)
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
 
     glfw.swap_buffers(window)
     glfw.poll_events()
