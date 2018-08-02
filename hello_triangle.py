@@ -3,6 +3,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import glfw
 import numpy
+import math
 
 
 def framebuffer_size_callback(window, width, height):
@@ -85,7 +86,15 @@ while not glfw.window_should_close(window):
     glClearColor(0.2, 0.3, 0.3, 1.0)
     glClear(GL_COLOR_BUFFER_BIT)
 
+
     glUseProgram(shaderProgram)
+
+    # set uniform
+    timeValue = glfw.get_time()
+    greenValue = math.sin(timeValue) / 2.0 + 0.5
+    vertexColorLocation = glGetUniformLocation(shaderProgram,"ourColor")
+    glUniform4f(vertexColorLocation,0.0,greenValue,0.0,1.0)
+
     glBindVertexArray(vao)
     glDrawArrays(GL_TRIANGLES, 0, 3)
 
